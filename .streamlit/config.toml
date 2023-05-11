@@ -1,0 +1,18 @@
+[server]
+maxUploadSize = 256
+enableCORS = true
+sslCertFile = 'cert.pem'
+sslKeyFile = 'key.pem'
+headless = true
+port = 40000
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base="dark"
+primaryColor="#39ff14"
+backgroundColor="#000000"
+textColor="#f5f5dc"
+font="serif"
