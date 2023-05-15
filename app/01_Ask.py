@@ -26,6 +26,7 @@ st.set_page_config(
 if 'count' not in st.session_state:
     st.session_state.count = 0
 
+
 # Add a rotating log file that rotates every day
 #logger.add("logs/myapp_{time:YYYY-MM-DD}.log", rotation="1 week")
 
@@ -34,6 +35,7 @@ if 'count' not in st.session_state:
 
 st.header("295-VideoGPT") 
 col1, col2 = st.columns(2)
+
 
 with col1:
     st.subheader("Video Topic Search (only top 3 matches provided)")
@@ -56,20 +58,22 @@ with col1:
             index_id = "295-youtube-index"
             pinecone.init(
                     api_key=pinecone_api_key,
-                    environment="us-west1-gcp-free"
-                    )
+                        environment="us-west1-gcp-free"
+                        )
             pinecone_index = pinecone.Index(index_id)
-            encoded_query = openai.Embedding.create(input=query,    model="text-embedding-ada-002")['data'][0]['embedding']
-                        #res = query_gpt(chosen_class, chosen_pdf, query)
+            encoded_query = openai.Embedding.create(input=query,   model="text-embedding-ada-002")['data'][0]['embedding']
+                            #res = query_gpt(chosen_class, chosen_pdf, query)
             response = pinecone_index.query(encoded_query, top_k=3,
-                      include_metadata=True)
+                    include_metadata=True)
             elements = []
-            # st.header("Top 3 Hits")
+                # st.header("Top 3 Hits")
             for m in response['matches']:
                 url = m['metadata']['url']
                 st.markdown(f"[{url}]({url})")
-        logger.bind(user=st.session_state.count).info(f"Topic: {query} |")
+            st.session_state.topic = f"Topic: {query} | " 
+            logger.bind(user=st.session_state.count).info(f"Topic: {query} |")
  
+topic_rating = st_text_rater(text="Was it helpful?", key="topic_text")
         # Logging         # elements.append({'url': m['metadata']['url']})
 
 with st.container():
@@ -96,10 +100,10 @@ with st.container():
             pinecone_index = pinecone.Index(index_id)
             pinecone_index.describe_index_stats()
             openai.api_key ="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"
-            # Encode the query using the 'text-embedding-ada-002' model
+                # Encode the query using the 'text-embedding-ada-002' model
             encoded_query = openai.Embedding.create(input=query,model="text-embedding-ada-002")['data'][0]['embedding']
             response = pinecone_index.query(encoded_query, top_k=20,
-                              include_metadata=True)
+                            include_metadata=True)
             context = ""
             for m in response['matches']:
                 context += "\n" + m['metadata']['text']
@@ -108,9 +112,9 @@ with st.container():
             st.subheader("References")
             for m in response['matches'][0:2]:
                 url += m['metadata']['url']   
-            prompt=f"Please provide a concise answer in markdown format to the following question: {query} based on content below {context} and the internet. If you are not sure, then say I do not know."
+            prompt=f"Please provide a concise answer in markdown format tothe following question: {query} based on content below{context} and the internet. If you are not sure, then say I donot know."
             query_gpt = [
-            {"role": "system", "content": "You are a helpful teaching assistant for computer organization"},
+            {"role": "system", "content": "You are a helpful teachingassistant for computer organization"},
             {"role": "user", "content": f"""{prompt}"""},
             ]
             answer_response = openai.ChatCompletion.create(
@@ -125,8 +129,19 @@ with st.container():
                 url = m['metadata']['url']
                 st.markdown(f"[{url}]({url})")
             logger.bind(user=st.session_state.count).info(f"Q/A: {query}|")
-            
+            st.session_state.query = f"Q/A: {query}" 
 
+query_rating = st_text_rater(text="Was it helpful?", key="query_text")
 
-
-
+if query_rating is not None: 
+    if "query" in st.session_state:
+        logger.bind(user=st.session_state.count).info(st.session_state.query + f" | Rating: {query_rating}")
+    # else:
+    #     logger.bind(user=st.session_state.count).info(f"Rating: {query_rating}")
+        
+        
+if topic_rating is not None: 
+    if "topic" in st.session_state:
+        logger.bind(user=st.session_state.count).info(st.session_state.topic + f" | Rating: {topic_rating}")
+    # else:
+    #     logger.bind(user=st.session_state.count).info(f"Rating: {topic_rating}")
