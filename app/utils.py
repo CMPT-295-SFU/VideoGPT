@@ -14,7 +14,7 @@ from langchain import OpenAI
 from langchain.agents import Tool, initialize_agent
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.chat_models import ChatOpenAI
-
+from loguru import logger
 # llama_index
 from llama_index import Document, GPTVectorStoreIndex, LLMPredictor
 from pypdf import PdfReader
@@ -22,13 +22,19 @@ from s3 import S3
 
 # set to DEBUG for more verbose logging
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
-
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
 # s3 = S3("classgpt")
 
+def init_logger():
+    logger.add("295GPT.log", level="INFO",
+        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | {message} | {extra[user]}", rotation="10 MB", compression="gz")
+    st.session_state.init_logger = True
+
+
+if "init_logger" not in  st.session_state:
+    init_logger()
 
 # ------------------- index creation ------------------- #
 
