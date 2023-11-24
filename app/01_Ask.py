@@ -38,12 +38,12 @@ col1, col2 = st.columns(2)
 
 
 with col1:
-    st.subheader("Video Topic Search (only top 3 matches provided)")
+    st.subheader("Top 3 Video Topic Search")
 #    st.subheader("Lookup a topic")
     st.markdown(
         """
         Here are some examples
-        - `R-type instruction`, `Locality`, `Memory allocation`
+        - `R-type instruction`, `Memory allocation`
         """
     )
     query = st.text_area("Enter topic you want to find in videos", max_chars=25)
@@ -82,8 +82,8 @@ with st.container():
     st.markdown(
         """
         Here are some examples
-        - What is a pointer and give me an example ?
-        - How to find the address of an element in a 2D array ? 
+        - `What is a pointer and give me an example ?`
+        - `How to find the address of an element in a 2D array ?` 
         """
         )
     query = st.text_area("Question", max_chars=200)
