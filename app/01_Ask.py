@@ -2,9 +2,12 @@
 
 import streamlit as st
 from components.sidebar import sidebar
-from utils import query_gpt, query_gpt_memory, show_pdf, pinecone_api_key
+from utils import query_gpt, query_gpt_memory, show_pdf, pinecone_api_key, openai_api_key
 import pinecone
-import openai
+from openai import OpenAI
+
+#client = OpenAI(api_key="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")
+client = OpenAI(api_key=openai_api_key)
 import pandas as pd
 from loguru import logger
 import sys
@@ -61,8 +64,10 @@ with col1:
                         environment="us-west1-gcp-free"
                         )
             pinecone_index = pinecone.Index(index_id)
-            encoded_query = openai.Embedding.create(input=query,   model="text-embedding-ada-002")['data'][0]['embedding']
-                            #res = query_gpt(chosen_class, chosen_pdf, query)
+            #encoded_query = client.embeddings.create(input=query,   model="text-embedding-ada-002")['data'][0]['embedding']
+            #res = query_gpt(chosen_class, chosen_pdf, query)
+            text = query.replace("\n", " ")
+            encoded_query = client.embeddings.create(input = [text], model="text-embedding-ada-002").data[0].embedding
             response = pinecone_index.query(encoded_query, top_k=3,
                     include_metadata=True)
             elements = []
@@ -99,9 +104,10 @@ with st.container():
                         )
             pinecone_index = pinecone.Index(index_id)
             pinecone_index.describe_index_stats()
-            openai.api_key ="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"
+            
                 # Encode the query using the 'text-embedding-ada-002' model
-            encoded_query = openai.Embedding.create(input=query,model="text-embedding-ada-002")['data'][0]['embedding']
+            #encoded_query = client.embeddings.create(input=query,model="text-embedding-ada-002")['data'][0]['embedding']
+            encoded_query = client.embeddings.create(input = [query], model="text-embedding-ada-002").data[0].embedding
             response = pinecone_index.query(encoded_query, top_k=20,
                             include_metadata=True)
             context = ""
@@ -117,13 +123,11 @@ with st.container():
             {"role": "system", "content": "You are a helpful teachingassistant for computer organization"},
             {"role": "user", "content": f"""{prompt}"""},
             ]
-            answer_response = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
+            answer_response = client.chat.completions.create(model='gpt-3.5-turbo',
             messages= query_gpt,
             temperature=0,
-            max_tokens=500,
-            )
-            st.markdown(answer_response["choices"][0]["message"]["content"])        
+            max_tokens=500)
+            st.markdown(answer_response.choices[0].message.content)        
             st.markdown("**References**")
             for m in response['matches'][0:2]:
                 url = m['metadata']['url']

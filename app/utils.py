@@ -8,7 +8,7 @@ from io import BytesIO
 import openai
 import streamlit as st
 from dotenv import load_dotenv
-from langchain import OpenAI
+from langchain.llms import OpenAI
 
 # langchain
 from langchain.agents import Tool, initialize_agent
@@ -23,8 +23,9 @@ from s3 import S3
 # set to DEBUG for more verbose logging
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
+openai_api_key  = os.getenv("OPENAI_API_KEY")
 # s3 = S3("classgpt")
 
 def init_logger():
