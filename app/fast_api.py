@@ -122,6 +122,6 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=42000,
         log_level="debug",
-        ssl_keyfile="/localhome/ashriram/Courses/CMPT295/VideoGPT/key.pem",  # Path to your key file
-        ssl_certfile="/localhome/ashriram/Courses/CMPT295/VideoGPT/cert.pem"  # Path to your certificate file
+        ssl_keyfile="/repo/key.pem",  # Path to your key file
+        ssl_certfile="/repo/cert.pem"  # Path to your certificate file
     )
