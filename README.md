@@ -29,3 +29,9 @@ curl -k "https://0.0.0.0:42000/topic?query=R-type%0A" # Topic endpoint
 curl -k "https://0.0.0.0:42000/question?query=What%20is%20a%20R-type%20Instruction" # Question endpoint
 ```
 
+
+# Demo video
+
+[![Ask My 295 Prof]
+(./AskMyProf.png)]
+(https://www.youtube.com/watch?v=MKRYzsw3t6E)
