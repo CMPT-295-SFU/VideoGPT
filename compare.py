@@ -40,10 +40,11 @@ def parse_file(filename):
             else:
                 # Append the line to the current entry's content
                 current_entry['content'] += ' ' + line.strip()
-
+        
         # Append the last entry
         if current_entry:
             data.append(current_entry)
+            
 
     return data
 
