@@ -45,13 +45,21 @@ class StreamDisplayHandler(BaseCallbackHandler):
 
 
 def display_slide_results(slide_results):
-    for m in slide_results["results"][0]["matches"][0:2]:
+    content = ""
+    for m in slide_results["results"][0]["matches"][0:4]:
         url = m["metadata"]["file"]
         page = m["metadata"]["Slide"]
-        st.markdown(
-            f"-[{url}](https://www.cs.sfu.ca/~ashriram/Courses/CS295//assets/lectures/{url}#page={page})"
-        )
-
+        content += f"[[{url}#{page}](https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/lectures/{url}#page={page})] "
+    return content
+        
+def get_slide_content(index, encoded_query):
+    slide_results = index.query(
+        queries=[encoded_query], top_k=5, namespace="Slides", include_metadata=True
+    )
+    content = ""
+    for r in slide_results["results"][0]["matches"]:
+        content += r["metadata"]["description"] + "\n"
+    return slide_results,content
 
 def extract_week(slide_results):
     week = (
@@ -62,9 +70,24 @@ def extract_week(slide_results):
     return week
 
 def display_audio_results(audio_results):
-    for m in audio_results["results"][0]["matches"][0:2]:
+    content = ""
+    for m in audio_results["results"][0]["matches"][0:4]:
         url = m["metadata"]["url"]
-        st.markdown(f"-[{url}]({url})")
+        content += f"[[{url}]({url})] "
+    return content    
+
+
+
+def get_audio_content(index, encoded_query):
+    audio_results = index.query(
+        queries=[encoded_query], top_k=5, include_metadata=True
+    )
+    content = ""
+    for r in audio_results["results"][0]["matches"]:
+        content += r["metadata"]["text"] + "\n"
+
+    return audio_results,content
+
 
 
 st.set_page_config(
@@ -84,22 +107,27 @@ if "count" not in st.session_state:
 # Add a rotating log file that rotates every day
 # logger.add("logs/myapp_{time:YYYY-MM-DD}.log", rotation="1 week")
 
-client = OpenAI(api_key=openai_api_key)
+
 
 
 st.header("295Bot")
 col1, col2 = st.columns(2)
 
 
+
 with col1:
-    st.subheader("Top 3 Video Topic Search")
+    client = OpenAI(api_key=openai_api_key)
+    index_id = "295-youtube-index"
+    pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")
+    index = pinecone.Index(index_id)
+    st.subheader("Topic Search")
     #    st.subheader("Lookup a topic")
-    st.markdown(
-        """
-        Here are some examples
-        - `R-type instruction`, `Memory allocation`
-        """
-    )
+    with st.expander("See Examples"):
+        st.markdown(
+            """
+            `Memory allocation`, `R-type instruction`
+            """
+        )
     query = st.text_area("Enter topic you want to find in videos", max_chars=25)
 
     if st.button("Ask"):
@@ -109,9 +137,6 @@ with col1:
             st.error("Please enter a topic")
         with st.spinner("Generating answer..."):
             # res = query_gpt_memory(chosen_class, chosen_pdf, query)
-            index_id = "295-youtube-index"
-            pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")
-            index = pinecone.Index(index_id)
             # encoded_query = client.embeddings.create(input=query,   model="text-embedding-ada-002")['data'][0]['embedding']
             # res = query_gpt(chosen_class, chosen_pdf, query)
             text = query.replace("\n", " ")
@@ -120,24 +145,21 @@ with col1:
                 .data[0]
                 .embedding
             )
-            slide_results = index.query(
-                queries=[encoded_query],
-                top_k=5,
-                namespace="Slides",
-                include_metadata=True,
-            )
-            audio_results = index.query(
-                queries=[encoded_query], top_k=5, include_metadata=True
-            )
+            context = "Question: " + query + "\n"
+            context += "\n" + "#######Slide Context#####\n"
+            slide_results,content = get_slide_content(index, encoded_query) 
+            context += "\n #######Audio Context#####\n"
+            audio_results,content = get_audio_content(index, encoded_query)
+            context += content            
             st.markdown("**Slide References**")
-            display_slide_results(slide_results)
+            st.markdown(display_slide_results(slide_results))
             week = extract_week(slide_results)
             st.markdown(
                 f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})\n`you can lookup using provided slide reference above`"
             )
             st.markdown("**Video References**")
             st.markdown(f"`May be off a bit since it uses instructor's audio`")
-            display_audio_results(audio_results)
+            st.markdown(display_audio_results(audio_results))
             
             st.session_state.topic = f"Topic: {query} | "
             log_query = query.replace("\n", " ")
@@ -147,15 +169,19 @@ topic_rating = st_text_rater(text="Was it helpful?", key="topic_text")
 
 
 with st.container():
+    client = OpenAI(api_key=openai_api_key)
+    index_id = "295-youtube-index"
+    pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")    
+    index = pinecone.Index(index_id)
     st.subheader("Question-Answering: I am feeling Lucky")
     #    st.subheader("Lookup a topic")
-    st.markdown(
-        """
-        Here are some examples
-        - `What is a pointer and give me an example ?`
-        - `How to find the address of an element in a 2D array ?` 
-        """
-    )
+    with st.expander("See Examples"):
+        st.markdown(
+            """
+            - `What is a pointer and give me an example ?`
+            - `How to find the address of an element in a 2D array ?` 
+            """
+        )
     query = st.text_area("Question", max_chars=200)
     model_options = ["gpt-4-1106-preview"]
     option = st.selectbox(
@@ -172,11 +198,6 @@ with st.container():
             if option == "gpt-4-1106-preview":
                 delay = 40
             with st.spinner(f"Generating answer.....(can take upto {delay} seconds)"):
-                index_id = "295-youtube-index"
-                pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")
-                index = pinecone.Index(index_id)
-                index.describe_index_stats()
-
                 # Encode the query using the 'text-embedding-ada-002' model
                 # encoded_query = client.embeddings.create(input=query,model="text-embedding-ada-002")['data'][0]['embedding']
                 encoded_query = (
@@ -188,22 +209,10 @@ with st.container():
                 )
                 context = "Question: " + query + "\n"
                 context += "\n" + "#######Slide Context#####\n"
-                slide_results = index.query(
-                    queries=[encoded_query],
-                    top_k=5,
-                    namespace="Slides",
-                    include_metadata=True,
-                )
-                for r in slide_results["results"][0]["matches"]:
-                    context += r["metadata"]["description"] + "\n"
-
+                slide_results,content = get_slide_content(index, encoded_query) 
                 context += "\n #######Audio Context#####\n"
-                audio_results = index.query(
-                    queries=[encoded_query], top_k=5, include_metadata=True
-                )
-
-                for r in audio_results["results"][0]["matches"]:
-                    context += r["metadata"]["text"] + "\n"
+                audio_results,content = get_audio_content(index, encoded_query)
+                context += content
                 query_gpt = [
                     {
                         "role": "system",
@@ -228,15 +237,15 @@ with st.container():
                         HumanMessage(content=f"""{context}"""),
                     ]
                 )
-
                 st.markdown("**Slide References**")
-                display_slide_results(slide_results)
+                st.markdown(display_slide_results(slide_results))
                 week = extract_week(slide_results)
                 st.markdown(
-                    f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})\n`you can lookup using provided slide reference above`"
+                    f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
                 )
                 st.markdown("**Video References**")
                 st.markdown(f"`May be off a bit since it uses instructor's audio`")
+                st.markdown(display_audio_results(audio_results))
                 log_query = query.replace("\n", " ")
                 logger.bind(user=st.session_state.count).info(f"Q/A: {log_query}|")
                 st.session_state.query = f"Q/A: {query}"
