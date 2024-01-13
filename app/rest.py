@@ -1,19 +1,27 @@
-from fastapi import FastAPI
-import logging
-import uvicorn
-import streamlit as st
-from components.sidebar import sidebar
-import pinecone
-from dotenv import load_dotenv
-from openai import OpenAI
-import pandas as pd
-from loguru import logger
-import sys
+import asyncio
 import json
-from fastapi import Response
-from pydantic import BaseModel
+import logging
 import os
-
+import sys
+from typing import AsyncIterable
+import pandas as pd
+import pinecone
+import streamlit as st
+import uvicorn
+from dotenv import load_dotenv
+from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from langchain.callbacks import AsyncIteratorCallbackHandler
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import HumanMessage, SystemMessage
+from loguru import logger
+from openai import OpenAI
+from pydantic import BaseModel
+from Ask import (display_audio_results, display_slide_results,
+                 get_audio_content, get_slide_content)
+from components.sidebar import sidebar
+import markdown
 
 # set to DEBUG for more verbose logging
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -30,10 +38,20 @@ def init_logger():
 
 #client = OpenAI(api_key="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")
 client = OpenAI(api_key=openai_api_key)
-
-
+index_id = "295-youtube-index"
+pinecone.init(
+        api_key=pinecone_api_key,
+        environment="us-west1-gcp-free"
+    )
+index = pinecone.Index(index_id)
 app = FastAPI()
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
@@ -47,27 +65,38 @@ async def read_item(item_id: int, q: str = None):
 @app.get("/topic")
 async def topic(query: str = None):
     print(query)
-    index_id = "295-youtube-index"
-    pinecone.init(
-        api_key=pinecone_api_key,
-        environment="us-west1-gcp-free"
-    )
-    pinecone_index = pinecone.Index(index_id)
     # encoded_query = client.embeddings.create(input=query,  model="text-embedding-ada-002")['data'][0]['embedding']
     # res = query_gpt(chosen_class, chosen_pdf, query)
     text = query.replace("\n", " ")
-    encoded_query = client.embeddings.create(
-        input=[text], model="text-embedding-ada-002").data[0].embedding
-    response = pinecone_index.query(encoded_query, top_k=3,
-                                    include_metadata=True)
+    encoded_query = (
+                client.embeddings.create(input=[text], model="text-embedding-ada-002")
+                .data[0]
+                .embedding
+    )
+    context = "Question: " + query + "\n"
+    context += "\n" + "#######Slide Context#####\n"
+    slide_results,content = get_slide_content(index, encoded_query) 
+    context += "\n #######Audio Context#####\n"
+    audio_results,content = get_audio_content(index, encoded_query)
+    context += content            
     elements = []
     # Create json from list
     url = []
-    for m in response['matches']:
-        url.append(m['metadata']['url'])
+    # print(slide_results)
+    for m in slide_results['results'][0]['matches']:
+        url.append(m['metadata']['file'])
+    
+    content = ""
+    for m in slide_results['results'][0]['matches'][0:3]:
+        file = m["metadata"]["file"]
+        page = m["metadata"]["Slide"]
+        content += f"* [{file}#{page}](https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/lectures/{file}#page={page}) \n"
+    result = {}
+    result['query'] = query
+    result['slides'] = url
+    result['markdown'] = markdown.markdown(content)
     logger.bind(user="1").info(f"Topic: {query} |")
-    return Response(content=json.dumps(url), media_type="application/json")
-
+    return Response(content=json.dumps(result), media_type="application/json")
 
 @app.get("/question")
 async def question(query: str = None):
@@ -117,11 +146,12 @@ async def question(query: str = None):
 
 
 if __name__ == "__main__":
+    repo = os.getenv("REPO")
     uvicorn.run(
         app,
         host="0.0.0.0",
         port=42000,
         log_level="debug",
-        ssl_keyfile="/repo/key.pem",  # Path to your key file
-        ssl_certfile="/repo/cert.pem"  # Path to your certificate file
+        ssl_keyfile=f"{repo}/key.pem",  # Path to your key file
+        ssl_certfile=f"{repo}/cert.pem"  # Path to your certificate file
     )
