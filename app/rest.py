@@ -60,20 +60,13 @@ app.add_middleware(
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
-
-
 @app.get("/topic")
 async def topic(query: str = None):
     print(query)
     text = query.replace("\n", " ")
-    encoded_query = (
-                client.embeddings.create(input=[text], model="text-embedding-ada-002")
-                .data[0]
-                .embedding
-    )
+    encoded_query = await (
+                client.embeddings.create(input=[text], model="text-embedding-ada-002"))
+    encoded_query = encoded_query.data[0].embedding
     context = "Question: " + query + "\n"
     context += "\n" + "#######Slide Context#####\n"
     slide_results,content = get_slide_content(index, encoded_query) 
@@ -87,17 +80,17 @@ async def topic(query: str = None):
     for m in slide_results['results'][0]['matches']:
         url.append(m['metadata']['file'])
     
-    content = ""
-    for m in slide_results['results'][0]['matches'][0:3]:
-        file = m["metadata"]["file"]
-        page = m["metadata"]["Slide"]
-        content += f"* [{file}#{page}](https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/lectures/{file}#page={page}) \n"
+
+    response = ""
+    response += "\n\n #### Slide References \n\n" + display_slide_results(slide_results)
+    response += "\n\n #### Audio References \n\n" + display_audio_results(audio_results)
+    
     result = {}
     result['query'] = query
     result['slides'] = url
-    result['markdown'] = markdown.markdown(content)
+    result['markdown'] = response
     logger.bind(user="1").info(f"Topic: {query} |")
-    return Response(content=json.dumps(result), media_type="application/json")
+    return Response(content=result["markdown"], media_type="application/text")
 
 @app.get("/question")
 async def question(query: str = None):
@@ -146,14 +139,6 @@ async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
     """
     OpenAI Response
     """
-
-
-    # all_content = ""
-    # async for chunk in response:
-    #     content = chunk.choices[0].delta.content
-    #     if content:
-    #         all_content += content
-    #         yield all_content
     encoded_query = await (client.embeddings.create(
                         input=[query], model="text-embedding-ada-002"))
     encoded_query = encoded_query.data[0].embedding
@@ -193,11 +178,11 @@ async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
             all_content += content
             yield all_content
     
-    all_content += "\n\n #### Slide References** \n\n" + display_slide_results(slide_results)
-    all_content += "\n\n #### Audio References** \n" + display_audio_results(audio_results)
+    all_content += "\n\n #### Slide References \n\n" + display_slide_results(slide_results)
+    all_content += "\n\n #### Audio References \n\b" + display_audio_results(audio_results)
     week = extract_week(slide_results)
 
-    all_content += "\n\n #### Relevant Week" + f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
+    all_content += "\n\n #### Relevant Week \n" + f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
     yield all_content
 
 
