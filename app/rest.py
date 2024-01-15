@@ -3,25 +3,27 @@ import json
 import logging
 import os
 import sys
-from typing import AsyncIterable
+from typing import AsyncGenerator, AsyncIterable, NoReturn
+
+import markdown
 import pandas as pd
 import pinecone
 import streamlit as st
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage
 from loguru import logger
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
+
 from Ask import (display_audio_results, display_slide_results,
-                 get_audio_content, get_slide_content)
+                 get_audio_content, get_slide_content, extract_week)
 from components.sidebar import sidebar
-import markdown
 
 # set to DEBUG for more verbose logging
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -45,6 +47,7 @@ pinecone.init(
     )
 index = pinecone.Index(index_id)
 app = FastAPI()
+client = AsyncOpenAI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -65,8 +68,6 @@ async def read_item(item_id: int, q: str = None):
 @app.get("/topic")
 async def topic(query: str = None):
     print(query)
-    # encoded_query = client.embeddings.create(input=query,  model="text-embedding-ada-002")['data'][0]['embedding']
-    # res = query_gpt(chosen_class, chosen_pdf, query)
     text = query.replace("\n", " ")
     encoded_query = (
                 client.embeddings.create(input=[text], model="text-embedding-ada-002")
@@ -107,9 +108,6 @@ async def question(query: str = None):
                 )
     pinecone_index = pinecone.Index(index_id)
     pinecone_index.describe_index_stats()
-            
-    # Encode the query using the 'text-embedding-ada-002' model
-    #encoded_query = client.embeddings.create(input=query,model="text-embedding-ada-002")['data'][0]['embedding']
     encoded_query = client.embeddings.create(input = [query], model="text-embedding-ada-002").data[0].embedding
     response = pinecone_index.query(encoded_query, top_k=20,
                             include_metadata=True)
@@ -144,14 +142,86 @@ async def question(query: str = None):
     return Response(content=json.dumps(response_json), media_type="application/json")
 
 
+async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
+    """
+    OpenAI Response
+    """
+
+
+    # all_content = ""
+    # async for chunk in response:
+    #     content = chunk.choices[0].delta.content
+    #     if content:
+    #         all_content += content
+    #         yield all_content
+    encoded_query = await (client.embeddings.create(
+                        input=[query], model="text-embedding-ada-002"))
+    encoded_query = encoded_query.data[0].embedding
+                    
+    context = "Question: " + query + "\n"
+    context += "\n" + "#######Slide Context#####\n"
+    slide_results, content = get_slide_content(index, encoded_query)
+    context += content
+    context += "\n #######Audio Context#####\n"
+    audio_results, content = get_audio_content(index, encoded_query)
+    context += content     
+    
+    # st.markdown(display_audio_results(audio_results))
+    
+    response = await client.chat.completions.create(
+        model="gpt-4-1106-preview",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert in RISC-V and Computer Architecture." "Try to answer the following questions based on the" "context below in markdown format. If you "
+                    " don't know the answer, just say 'I don't know'."
+                ),
+            },
+            {
+                "role": "user",
+                "content": context,
+            },
+        ],
+        stream=True,
+    )
+    
+    all_content = ""
+    async for chunk in response:
+        content = chunk.choices[0].delta.content
+        if content:
+            all_content += content
+            yield all_content
+    
+    all_content += "\n\n #### Slide References** \n\n" + display_slide_results(slide_results)
+    all_content += "\n\n #### Audio References** \n" + display_audio_results(audio_results)
+    week = extract_week(slide_results)
+
+    all_content += "\n\n #### Relevant Week" + f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
+    yield all_content
+
+
+@app.websocket("/stream")
+async def websocket_endpoint(websocket: WebSocket) -> NoReturn:
+    """
+    Websocket for AI responses
+    """
+    await websocket.accept()
+    while True:
+        message = await websocket.receive_text()
+        async for text in get_ai_response(message):
+            await websocket.send_text(text)
+
+
 
 if __name__ == "__main__":
     repo = os.getenv("REPO")
     uvicorn.run(
-        app,
+        "rest:app",
         host="0.0.0.0",
         port=42000,
         log_level="debug",
         ssl_keyfile=f"{repo}/key.pem",  # Path to your key file
-        ssl_certfile=f"{repo}/cert.pem"  # Path to your certificate file
+        ssl_certfile=f"{repo}/cert.pem",  # Path to your certificate file
+        reload=True
     )

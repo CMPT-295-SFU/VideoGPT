@@ -148,6 +148,7 @@ with col1:
             context = "Question: " + query + "\n"
             context += "\n" + "#######Slide Context#####\n"
             slide_results,content = get_slide_content(index, encoded_query) 
+            context += content
             context += "\n #######Audio Context#####\n"
             audio_results,content = get_audio_content(index, encoded_query)
             context += content            
