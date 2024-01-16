@@ -43,6 +43,7 @@
         createTheme,
         Box,
         Button,
+        Rating,
         Skeleton,
       } = MaterialUI;
 
@@ -59,7 +60,7 @@
         const [question, setQuestion] = React.useState("");
         const [loading, setLoading] = React.useState(false);
         const [message, setMessage] = React.useState("");
-        const [getResponse, setGetResponse] = React.useState("");
+        const [rating, setRating] = React.useState(0);
 
         React.useEffect(() => {
           WS.onmessage = (event) => {
@@ -75,7 +76,7 @@
           WS.send(question);
           // You may also handle the response here or in another part of your code
         };
-        const sendGetRequest = async () => {
+        const sendTopic = async () => {
           // setLoading(true);
           const response = await fetch(
             `https://0.0.0.0:42000/topic?query=${question}`
@@ -83,6 +84,19 @@
           const data = await response.text();
           setResponse(marked.parse(data));
           //setLoading(true);
+        };
+        const handleRatingChange = (event, newValue) => {
+          setRating(newValue);
+          // Invoke a post request to the backend to update the rating along with query to post url
+          const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: question, rating: newValue }),
+          };
+          const response = fetch(
+            "https://0.0.0.0:42000/rating",
+            requestOptions
+            );
         };
 
         return (
@@ -105,9 +119,6 @@
                 }}
                 onKeyUp={(e) => {
                   setLoading(false);
-                  if (e.key === "Enter" && e.key == "Shift") {
-                    sendQuestion();
-                  }
                 }}
               />
               <Button
@@ -119,7 +130,7 @@
                   color: "white",
                   padding: "10px 20px",
                   textTransform: "none",
-                 // borderRadius: "20px",
+                  // borderRadius: "20px",
                   boxShadow: "none",
                   fontWeight: "bold",
                   transition: "transform 0.1s ease-in-out", // Smooth transition for press animation
@@ -134,49 +145,54 @@
                   e.target.style.transform = "scale(1)"; // Return to normal scale when mouse leaves
                 }}
                 disabled={loading}
-                onClick={sendGetRequest}
+                onClick={sendTopic}
               >
                 Search Topic
               </Button>
-              <div style={{ display: 'inline-block', marginRight: '10px' }}>
-              <Button
-                variant="contained"
-                style={{
-                  marginTop: "10px",
-                  margingBottom: "10px",
-                  marginRight: "10px",
-                  backgroundColor: "#4a90e2",
-                  color: "white",
-                  padding: "10px 20px",
-                  textTransform: "none",
-                //  borderRadius: "20px",
-                  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                  fontWeight: "bold",
-                  transition:
-                    "transform 0.1s ease-in-out, background-color 0.3s ease",
-                }}
-                onMouseDown={(e) => {
-                  e.target.style.transform = "scale(0.5)";
-                  e.target.style.backgroundColor = "#357ABD"; // Change background color on mouse down
-                }}
-                onMouseUp={(e) => {
-                  e.target.style.transform = "scale(1)";
-                  e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse up
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = "#357ABD"; // Change background color on mouse enter
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = "scale(1)";
-                  e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse leave
-                }}
-                disabled={loading}
-                onClick={sendQuestion}
-              >
-                {" "}
-                Ask Prof
-              </Button>
-            </div>
+              <div style={{ display: "inline-block", marginRight: "10px" }}>
+                <Button
+                  variant="contained"
+                  style={{
+                    marginTop: "10px",
+                    margingBottom: "10px",
+                    marginRight: "10px",
+                    backgroundColor: "#4a90e2",
+                    color: "white",
+                    padding: "10px 20px",
+                    textTransform: "none",
+                    //  borderRadius: "20px",
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                    fontWeight: "bold",
+                    transition:
+                      "transform 0.1s ease-in-out, background-color 0.3s ease",
+                  }}
+                  onMouseDown={(e) => {
+                    e.target.style.transform = "scale(0.5)";
+                    e.target.style.backgroundColor = "#357ABD"; // Change background color on mouse down
+                  }}
+                  onMouseUp={(e) => {
+                    e.target.style.transform = "scale(1)";
+                    e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse up
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = "#357ABD"; // Change background color on mouse enter
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "scale(1)";
+                    e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse leave
+                  }}
+                  disabled={loading}
+                  onClick={sendQuestion}
+                >
+                  {" "}
+                  Ask Prof
+                </Button>
+              </div>
+              <Rating
+                name="simple-controlled"
+                value={rating}
+                onChange={handleRatingChange}
+              />
             </Box>
             {!response && loading && (
               <>
@@ -186,7 +202,15 @@
               </>
             )}
             {response && (
-              <Typography dangerouslySetInnerHTML={{ __html: response }} />
+              <div>
+                <Typography dangerouslySetInnerHTML={{ __html: response }} />
+                {rating === null && (
+                  <div>
+                    <Typography variant="h6">Rate this answer:</Typography>
+                    <Rating initialRating={0} onRate={handleRating} />
+                  </div>
+                )}
+              </div>
             )}
           </Container>
         );
