@@ -61,6 +61,7 @@
         const [loading, setLoading] = React.useState(false);
         const [message, setMessage] = React.useState("");
         const [rating, setRating] = React.useState(0);
+        const [ws, setWs] = React.useState(null);
 
         React.useEffect(() => {
           WS.onmessage = (event) => {
@@ -70,12 +71,45 @@
         }, []);
 
         const sendQuestion = () => {
-          setResponse("");
           setLoading(true);
+          setResponse("");
           // Logic to send the question, for example using WebSocket
           WS.send(question);
           // You may also handle the response here or in another part of your code
         };
+
+        const askMyProf = () => {
+          setLoading(true);
+          const WS = new WebSocket("wss://0.0.0.0:42000/stream");
+          setWs(WS);
+
+          WS.onmessage = (event) => {
+           // Check if EOS is substring of the response 
+           if (event.data.includes("EOS")) {
+              WS.close();
+              setLoading(false);
+            } else {
+              setResponse(marked.parse(event.data));
+            }
+
+//            setLoading(false);
+  //          setResponse(marked.parse(event.data));
+          };
+
+          // Send the question to the server
+          WS.onopen = () => {
+            WS.send(question);
+          };
+        };
+
+        const stopStream = () => {
+          if (ws) {
+            setResponse("");
+            ws.close();
+            setLoading(false);
+          }
+        };
+
         const sendTopic = async () => {
           // setLoading(true);
           const response = await fetch(
@@ -96,7 +130,7 @@
           const response = fetch(
             "https://0.0.0.0:42000/rating",
             requestOptions
-            );
+          );
         };
 
         return (
@@ -181,11 +215,11 @@
                     e.target.style.transform = "scale(1)";
                     e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse leave
                   }}
-                  disabled={loading}
-                  onClick={sendQuestion}
+               //   disabled={loading}
+                  onClick={loading ? stopStream : askMyProf}
                 >
                   {" "}
-                  Ask Prof
+                  {loading ? "Stop" : "Ask My Prof"}
                 </Button>
               </div>
               <Rating

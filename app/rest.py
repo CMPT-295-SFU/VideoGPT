@@ -184,6 +184,7 @@ async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
 
     all_content += "\n\n #### Relevant Week \n" + f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
     yield all_content
+    yield "EOS"
 
 
 @app.websocket("/stream")
