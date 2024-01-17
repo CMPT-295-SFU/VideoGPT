@@ -31,6 +31,11 @@
   </head>
 
   <body>
+    `TO USE THIS APP YOU HAVE TO BE CONNECTED TO VPN or SFU WIFI` `IF FRAME
+    BELOW IS BLANK, THAT MEANS YOU ARE NOT CONNECTED` `BEFORE YOU CAN USE THE
+    APP YOU HAVE TO ACCEPT PERMISSIONS BELOW ONCE` [Click
+    Link](https://142.58.23.71:42000/) **Advanced>Proceed to safe...**
+
     <div id="root"></div>
     <script type="text/babel">
       const {
@@ -45,6 +50,9 @@
         Button,
         Rating,
         Skeleton,
+        Accordion,
+        AccordionSummary,
+        AccordionDetails,
       } = MaterialUI;
 
       const theme = createTheme({
@@ -120,7 +128,11 @@
           const requestOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: question, rating: newValue, resp: setResponse})
+            body: JSON.stringify({
+              query: question,
+              rating: newValue,
+              resp: setResponse,
+            }),
           };
           const response = fetch(
             "https://0.0.0.0:42000/rating",
@@ -134,6 +146,131 @@
               <Typography variant="h4" component="h1" gutterBottom>
                 Ask Prof Bot (developed by Arrvindh Shriraman)
               </Typography>
+              <Accordion>
+                <AccordionSummary
+                  sx={{
+                    backgroundColor: "#4a90e2",
+                  }}
+                >
+                  <Typography>About this AI Bot</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>
+                    <p>
+                      We&#39;re excited to launch a pilot program to explore how
+                      AI can enhance your learning experience. Think of it not
+                      as a substitute for asking questions in class or to your
+                      instructor, but as a handy tool to deepen your
+                      understanding of the concepts we cover at your own
+                      convenience (anytime of the day, any topic).{" "}
+                    </p>
+                    <p>
+                      Below you will find a custom AI Bot that we have developed
+                      for 295. There are two options:
+                    </p>
+                    <ol>
+                      <li>
+                        Ask for a specific topic and app links to exact second
+                        in videos that we think are relevant from 295&#39;s
+                        database.
+                      </li>
+                      <li>
+                        You can use the Q/A feature. This will provide a
+                        detailed answer.{" "}
+                      </li>
+                    </ol>
+                    <p>
+                      Please note, while the app strives to provide accurate and
+                      relevant information, it relies on AI algorithms and may
+                      not be the most accurate. Please rate the answers and
+                      provide feedback so we can improve the app. Always
+                      cross-verify critical information from provided class
+                      material. We will be thankful if you can provide feedback
+                      using the rating feature.
+                    </p>
+                    <br />
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary
+                  sx={{
+                    backgroundColor: "#4a90e2",
+                  }}
+                >
+                  <Typography>Examples</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>
+                    How to generate the address for a nested array element
+                    array[i][j]?
+                    <br />
+                    What are the fields of R-type instruction in RISC-V?
+                    <br />
+                    What are s and n in gdb? <br />
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary
+                  sx={{
+                    backgroundColor: "#4a90e2",
+                  }}
+                >
+                  <Typography>How to use the app?</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>
+                    <ul>
+                      <li>
+                        🧠 <strong>Understand Its Limits</strong>: While the
+                        295Bot is super smart, it's not perfect. Sometimes, it
+                        might get things a bit mixed up (we like to call these
+                        "hallucinations"). So, while it can be a great help,
+                        always double-check its answers.{" "}
+                        <a href="%7B%7Bsite.baseurl%7D%7D/quiz.html">
+                          Here's an example
+                        </a>{" "}
+                        of what to watch out for.
+                      </li>
+                      <li>
+                        💡 <strong>Generating Examples</strong>: Struggling with
+                        assembly instructions or pointer manipulation? the
+                        295Bot can whip up examples to make these concepts
+                        clearer.
+                      </li>
+                      <li>
+                        🙋 <strong>Answering Questions</strong>: Got a question
+                        about specific RISC-V instructions or design features?
+                        Ask away! the 295Bot can offer detailed explanations
+                        that might just be the lightbulb moment you need.
+                      </li>
+                      <li>
+                        📚 <strong>Use in Quizzes and Labs</strong>: Feel free
+                        to use the 295Bot as a study aid for quizzes and labs,
+                        but remember to stick to the{" "}
+                        <a href="%7B%7Bsite.baseurl%7D%7D/quiz.html">
+                          quiz rules
+                        </a>{" "}
+                        and{" "}
+                        <a href="%7B%7Bsite.baseurl%7D%7D/lab.html">
+                          lab rules
+                        </a>
+                        .
+                      </li>
+                      <li>
+                        ✅ <strong>Programming Assignments</strong>: We'll let
+                        you know when it's cool to use the 295Bot for
+                        programming assignments.
+                      </li>
+                      <li>
+                        ❌ <strong>Midterms and Finals</strong>: A heads-up –
+                        the 295Bot is off-limits during these exams.
+                      </li>
+                    </ul>
+                  </Typography>
+                </AccordionDetails>
+              </Accordion> <br />
               <TextField
                 id="outlined-basic"
                 label="Ask me Anything in CMPT 295"
@@ -185,7 +322,7 @@
                     marginTop: "10px",
                     margingBottom: "10px",
                     marginRight: "10px",
-                    backgroundColor: loading ? "red": "#4a90e2" ,
+                    backgroundColor: loading ? "red" : "#4a90e2",
                     color: "white",
                     padding: "10px 20px",
                     textTransform: "none",
@@ -216,14 +353,15 @@
                   {" "}
                   {loading ? "Stop" : "Ask My Prof"}
                 </Button>
-              </div> <br></br>
-
+              </div>{" "}
+              <br></br>
               Please rate the answer:
               <Rating
                 name="simple-controlled"
                 value={rating}
                 onChange={handleRatingChange}
               />
+              <br></br>
             </Box>
             {!response && loading && (
               <>
