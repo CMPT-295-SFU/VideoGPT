@@ -73,9 +73,7 @@
         const sendQuestion = () => {
           setLoading(true);
           setResponse("");
-          // Logic to send the question, for example using WebSocket
           WS.send(question);
-          // You may also handle the response here or in another part of your code
         };
 
         const askMyProf = () => {
@@ -91,9 +89,6 @@
             } else {
               setResponse(marked.parse(event.data));
             }
-
-            //            setLoading(false);
-            //          setResponse(marked.parse(event.data));
           };
 
           // Send the question to the server
@@ -125,7 +120,7 @@
           const requestOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: question, rating: newValue }),
+            body: JSON.stringify({ query: question, rating: newValue, resp: setResponse})
           };
           const response = fetch(
             "https://0.0.0.0:42000/rating",
@@ -190,7 +185,7 @@
                     marginTop: "10px",
                     margingBottom: "10px",
                     marginRight: "10px",
-                    backgroundColor: loading ? "#4a90e2" : "red",
+                    backgroundColor: loading ? "red": "#4a90e2" ,
                     color: "white",
                     padding: "10px 20px",
                     textTransform: "none",
@@ -221,7 +216,9 @@
                   {" "}
                   {loading ? "Stop" : "Ask My Prof"}
                 </Button>
-              </div>
+              </div> <br></br>
+
+              Please rate the answer:
               <Rating
                 name="simple-controlled"
                 value={rating}

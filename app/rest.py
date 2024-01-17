@@ -11,11 +11,11 @@ import pinecone
 import streamlit as st
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, Response, WebSocket
+from fastapi import FastAPI, Response, WebSocket, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from langchain.callbacks import AsyncIteratorCallbackHandler
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage
 from loguru import logger
 from openai import AsyncOpenAI, OpenAI
@@ -59,6 +59,16 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+# Print the data posted
+@app.post("/rating")
+async def rating(request: Request):
+    # Print the post body
+    data = await request.json()
+    rating = data["rating"]
+    query = data["query"].replace("\n", "%20")
+    logger.bind(user="1").info(f"Rating: {rating} | Query: {query} |")
+    return {"message": "Logged"}
 
 @app.get("/topic")
 async def topic(query: str = None):
@@ -128,7 +138,7 @@ async def question(query: str = None):
     url = []
     for m in response['matches']:
         url.append(m['metadata']['url'])
-    logger.bind(user="1").info(f"Topic: {query} |")
+# logger.bind(user="1").info(f"Question: {query} |")
     
     response_json = {"answer": answer, "references": url}
     
