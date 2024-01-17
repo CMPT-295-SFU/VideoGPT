@@ -67,7 +67,7 @@ async def rating(request: Request):
     data = await request.json()
     rating = data["rating"]
     query = data["query"].replace("\n", "%20")
-    logger.bind(user="1").info(f"Rating: {rating} | Query: {query} |")
+    logger.bind(user="1").info(f"Rating: {rating} | Query: {query}")
     return {"message": "Logged"}
 
 @app.get("/topic")
@@ -99,7 +99,8 @@ async def topic(query: str = None):
     result['query'] = query
     result['slides'] = url
     result['markdown'] = response
-    logger.bind(user="1").info(f"Topic: {query} |")
+    query = query.replace("\n", "%20")
+    logger.bind(user="1").info(f"Topic: {query}")
     return Response(content=result["markdown"], media_type="application/text")
 
 @app.get("/question")
@@ -191,7 +192,8 @@ async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
     all_content += "\n\n #### Slide References \n\n" + display_slide_results(slide_results)
     all_content += "\n\n #### Audio References \n\b" + display_audio_results(audio_results)
     week = extract_week(slide_results)
-
+    query = query.replace("\n", "%20")
+    logger.bind(user="1").info(f"Query: {query}")
     all_content += "\n\n #### Relevant Week \n" + f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
     yield all_content
     yield "EOS"
