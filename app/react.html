@@ -84,16 +84,16 @@
           setWs(WS);
 
           WS.onmessage = (event) => {
-           // Check if EOS is substring of the response 
-           if (event.data.includes("EOS")) {
+            // Check if EOS is substring of the response
+            if (event.data.includes("EOS")) {
               WS.close();
               setLoading(false);
             } else {
               setResponse(marked.parse(event.data));
             }
 
-//            setLoading(false);
-  //          setResponse(marked.parse(event.data));
+            //            setLoading(false);
+            //          setResponse(marked.parse(event.data));
           };
 
           // Send the question to the server
@@ -190,7 +190,7 @@
                     marginTop: "10px",
                     margingBottom: "10px",
                     marginRight: "10px",
-                    backgroundColor: "#4a90e2",
+                    backgroundColor: loading ? "#4a90e2" : "red",
                     color: "white",
                     padding: "10px 20px",
                     textTransform: "none",
@@ -215,7 +215,7 @@
                     e.target.style.transform = "scale(1)";
                     e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse leave
                   }}
-               //   disabled={loading}
+                  //   disabled={loading}
                   onClick={loading ? stopStream : askMyProf}
                 >
                   {" "}
