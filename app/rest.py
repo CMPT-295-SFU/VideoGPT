@@ -221,5 +221,6 @@ if __name__ == "__main__":
         log_level="debug",
         ssl_keyfile=f"{repo}/key.pem",  # Path to your key file
         ssl_certfile=f"{repo}/cert.pem",  # Path to your certificate file
-        reload=True
+        reload=True,
+        workers=8
     )
