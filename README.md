@@ -24,7 +24,7 @@ docker run -e PINECONE_API_KEY -e OPENAI_API_KEY -p 40000:40000 -it ashriram/ask
 # Navigate to browser 
 https://localhost:40000
 # To run rest api
-docker run -e PINECONE_API_KEY -e OPENAI_API_KEY -it ashriram/askmy295prof python3 /repo/app/rest.py
+docker run -e PINECONE_API_KEY -e OPENAI_API_KEY -e REPO -it ashriram/askmy295prof python3 /repo/app/rest.py
 # Open react.html in browser
 ```
 
