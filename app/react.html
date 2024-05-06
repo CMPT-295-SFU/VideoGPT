@@ -34,7 +34,7 @@
     `TO USE THIS APP YOU HAVE TO BE CONNECTED TO VPN or SFU WIFI` `IF FRAME
     BELOW IS BLANK, THAT MEANS YOU ARE NOT CONNECTED` `BEFORE YOU CAN USE THE
     APP YOU HAVE TO ACCEPT PERMISSIONS BELOW ONCE` [Click
-    Link](https://0.0.0.0:42000/) **Advanced>Proceed to safe...**
+    Link](https://127.0.0.1:42000/) **Advanced>Proceed to safe...**
 
     <div id="root"></div>
     <script type="text/babel">
@@ -61,7 +61,7 @@
         },
       });
 
-      const WS = new WebSocket("wss://0.0.0.0:42000/stream");
+      const WS = new WebSocket("wss://127.0.0.1:42000/stream");
 
       function App() {
         const [response, setResponse] = React.useState("");
@@ -86,7 +86,7 @@
 
         const askMyProf = () => {
           setLoading(true);
-          const WS = new WebSocket("wss://0.0.0.0:42000/stream");
+          const WS = new WebSocket("wss://127.0.0.1:42000/stream");
           setWs(WS);
 
           WS.onmessage = (event) => {
@@ -116,7 +116,7 @@
         const sendTopic = async () => {
           // setLoading(true);
           const response = await fetch(
-            `https://0.0.0.0:42000/topic?query=${question}`
+            `https://127.0.0.1:42000/topic?query=${question}`
           );
           const data = await response.text();
           setResponse(marked.parse(data));
@@ -135,7 +135,7 @@
             }),
           };
           const response = fetch(
-            "https://0.0.0.0:42000/rating",
+            "https://127.0.0.1:42000/rating",
             requestOptions
           );
         };

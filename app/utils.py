@@ -4,7 +4,7 @@ import os
 import sys
 import tempfile
 from io import BytesIO
-
+from langchain_community.chat_models import ChatOpenAI
 import openai
 import streamlit as st
 from dotenv import load_dotenv
@@ -13,10 +13,11 @@ from langchain.llms import OpenAI
 # langchain
 from langchain.agents import Tool, initialize_agent
 from langchain.chains.conversation.memory import ConversationBufferMemory
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import OpenAI
+from langchain_community.chat_models import ChatOpenAI
 from loguru import logger
 # llama_index
-from llama_index import Document, GPTVectorStoreIndex, LLMPredictor
+#from llama_index import GPTVectorStoreIndex, LLMPredictor
 from pypdf import PdfReader
 from s3 import S3
 

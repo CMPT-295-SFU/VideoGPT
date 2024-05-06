@@ -1,5 +1,5 @@
 # Currently tested & workong for Python 3.11
-FROM --platform=linux/arm64 python:3.9-slim
+FROM --platform=linux/amd64 python:3.9-slim
 
 # Copy the current directory contents into the container at /app
 COPY ./ /repo

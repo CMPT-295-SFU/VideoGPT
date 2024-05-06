@@ -12,4 +12,5 @@ pinecone-client
 loguru
 st-star-rating
 streamlit-text-rating
-
+uvicorn
+markdown

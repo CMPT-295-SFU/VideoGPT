@@ -16,10 +16,15 @@ from utils import (
     pinecone_api_key,
     openai_api_key,
 )
-import pinecone
-from openai import OpenAI
+from pinecone import Pinecone
+from langchain_community.embeddings.openai import OpenAIEmbeddings
 
-from langchain.chat_models import ChatOpenAI
+
+from openai import OpenAI
+#from langchain_community.llms import OpenAI
+from langchain_openai import OpenAI
+from langchain_community.chat_models import ChatOpenAI
+#from langchain.chat_models import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
 
 
@@ -46,24 +51,26 @@ class StreamDisplayHandler(BaseCallbackHandler):
 
 def display_slide_results(slide_results):
     content = ""
-    for m in slide_results["results"][0]["matches"][0:4]:
+    for m in slide_results["matches"][0:4]:
         url = m["metadata"]["file"]
         page = m["metadata"]["Slide"]
         content += f"[[{url}#{page}](https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/lectures/{url}#page={page})] "
     return content
         
 def get_slide_content(index, encoded_query):
+    print(encoded_query)
     slide_results = index.query(
-        queries=[encoded_query], top_k=5, namespace="Slides", include_metadata=True
+        vector=[encoded_query], top_k=5, namespace="Slides", include_metadata=True
     )
     content = ""
-    for r in slide_results["results"][0]["matches"]:
+    print(slide_results)
+    for r in slide_results["matches"]:
         content += r["metadata"]["description"] + "\n"
     return slide_results,content
 
 def extract_week(slide_results):
     week = (
-        slide_results["results"][0]["matches"][0]["metadata"]["file"]
+        slide_results["matches"][0]["metadata"]["file"]
         .split("/")[0]
         .replace("Part", "")
     )
@@ -71,7 +78,7 @@ def extract_week(slide_results):
 
 def display_audio_results(audio_results):
     content = ""
-    for m in audio_results["results"][0]["matches"][0:4]:
+    for m in audio_results["matches"][0:4]:
         url = m["metadata"]["url"]
         content += f"[[{url}]({url})] "
     return content    
@@ -80,10 +87,10 @@ def display_audio_results(audio_results):
 
 def get_audio_content(index, encoded_query):
     audio_results = index.query(
-        queries=[encoded_query], top_k=5, include_metadata=True
+        vector=[encoded_query], top_k=5, include_metadata=True
     )
     content = ""
-    for r in audio_results["results"][0]["matches"]:
+    for r in audio_results["matches"]:
         content += r["metadata"]["text"] + "\n"
 
     return audio_results,content
@@ -117,9 +124,12 @@ col1, col2 = st.columns(2)
 
 with col1:
     client = OpenAI(api_key=openai_api_key)
-    index_id = "295-youtube-index"
-    pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")
-    index = pinecone.Index(index_id)
+    em_client = OpenAIEmbeddings(api_key=openai_api_key)
+    pc = Pinecone(api_key=pinecone_api_key)
+    index = pc.Index("295-vstore")
+#    index_id = "295-youtube-index"
+#    pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")
+#    index = pinecone.Index(index_id)
     st.subheader("Topic Search")
     #    st.subheader("Lookup a topic")
     with st.expander("See Examples"):
@@ -140,11 +150,7 @@ with col1:
             # encoded_query = client.embeddings.create(input=query,   model="text-embedding-ada-002")['data'][0]['embedding']
             # res = query_gpt(chosen_class, chosen_pdf, query)
             text = query.replace("\n", " ")
-            encoded_query = (
-                client.embeddings.create(input=[text], model="text-embedding-ada-002")
-                .data[0]
-                .embedding
-            )
+            encoded_query = em_client.embed_documents([text])[0]
             context = "Question: " + query + "\n"
             context += "\n" + "#######Slide Context#####\n"
             slide_results,content = get_slide_content(index, encoded_query) 
@@ -171,9 +177,11 @@ topic_rating = st_text_rater(text="Was it helpful?", key="topic_text")
 
 with st.container():
     client = OpenAI(api_key=openai_api_key)
-    index_id = "295-youtube-index"
-    pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")    
-    index = pinecone.Index(index_id)
+    pc = Pinecone(api_key=pinecone_api_key)
+    index = pc.Index("295-vstore")
+#    index_id = "295-youtube-index"
+#    pinecone.init(api_key=pinecone_api_key, environment="us-west1-gcp-free")    
+#    index = pinecone.Index(index_id)
     st.subheader("Question-Answering: I am feeling Lucky")
     #    st.subheader("Lookup a topic")
     with st.expander("See Examples"):
@@ -201,13 +209,7 @@ with st.container():
             with st.spinner(f"Generating answer.....(can take upto {delay} seconds)"):
                 # Encode the query using the 'text-embedding-ada-002' model
                 # encoded_query = client.embeddings.create(input=query,model="text-embedding-ada-002")['data'][0]['embedding']
-                encoded_query = (
-                    client.embeddings.create(
-                        input=[query], model="text-embedding-ada-002"
-                    )
-                    .data[0]
-                    .embedding
-                )
+                encoded_query = em_client.embed_documents([query])[0]
                 context = "Question: " + query + "\n"
                 context += "\n" + "#######Slide Context#####\n"
                 slide_results,content = get_slide_content(index, encoded_query) 
@@ -217,7 +219,7 @@ with st.container():
                 query_gpt = [
                     {
                         "role": "system",
-                        "content": "You are an expert in RISC-V and Computer Architecture. Try to answer the following questions based on the context below in markdown format. If you don't know the answer, just say 'I don't know'.",
+                        "content": "You are an expert in RISC-V ISA and Computer architecture and Oranization. Try to answer the following question based on the context below in markdown format. If you don't know the answer, just say 'I don't know'.",
                     },
                     {"role": "user", "content": f"""{context}"""},
                 ]
@@ -230,6 +232,7 @@ with st.container():
                     callbacks=[display_handler],
                     openai_api_key=openai_api_key,
                 )
+                print(context)
                 answer_response = chat(
                     [
                         SystemMessage(
