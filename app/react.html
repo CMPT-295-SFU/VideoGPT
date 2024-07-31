@@ -92,7 +92,6 @@
           WS.onmessage = (event) => {
             // Check if EOS is substring of the response
             if (event.data.includes("EOS")) {
-              WS.close();
               setLoading(false);
             } else {
               setResponse(marked.parse(event.data));

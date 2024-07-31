@@ -111,8 +111,8 @@ async def topic(query: str = None):
     elements = []
     # Create json from list
     url = []
-    # print(slide_results)
-    for m in slide_results["results"][0]["matches"]:
+    print(slide_results)
+    for m in slide_results["matches"]:
         url.append(m["metadata"]["file"])
 
     response = ""
@@ -156,7 +156,7 @@ async def question(query: str = None):
         {"role": "user", "content": f"""{prompt}"""},
     ]
     answer_response = client.chat.completions.create(
-        model="gpt-3.5-turbo", messages=query_gpt, temperature=0, max_tokens=500
+        model="gpt-4o-mini", messages=query_gpt, temperature=0, max_tokens=500
     )
     answer = answer_response.choices[0].message.content
 
@@ -191,7 +191,7 @@ async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
     # st.markdown(display_audio_results(audio_results))
 
     response = await client.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "system",
