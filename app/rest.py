@@ -20,9 +20,26 @@ from langchain.schema import HumanMessage, SystemMessage
 from loguru import logger
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
+from pinecone import Pinecone
+from langchain_community.embeddings.openai import OpenAIEmbeddings
 
-from Ask import (display_audio_results, display_slide_results,
-                 get_audio_content, get_slide_content, extract_week)
+
+from openai import OpenAI
+
+# from langchain_community.llms import OpenAI
+from langchain_openai import OpenAI
+from langchain_community.chat_models import ChatOpenAI
+
+# from langchain.chat_models import ChatOpenAI
+from langchain.schema import SystemMessage, HumanMessage
+
+from helpers import (
+    display_audio_results,
+    display_slide_results,
+    get_audio_content,
+    get_slide_content,
+    extract_week,
+)
 from components.sidebar import sidebar
 
 # set to DEBUG for more verbose logging
@@ -30,22 +47,26 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 load_dotenv()
 
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
-openai_api_key  = os.getenv("OPENAI_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY")
 # s3 = S3("classgpt")
 
+
 def init_logger():
-    logger.add("295API.log", level="INFO",
-        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | {message} | {extra[user]}", rotation="10 MB", compression="gz")
-
-
-#client = OpenAI(api_key="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")
-client = OpenAI(api_key=openai_api_key)
-index_id = "295-youtube-index"
-pinecone.init(
-        api_key=pinecone_api_key,
-        environment="us-west1-gcp-free"
+    logger.add(
+        "295API.log",
+        level="INFO",
+        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | {message} | {extra[user]}",
+        rotation="10 MB",
+        compression="gz",
     )
-index = pinecone.Index(index_id)
+
+
+# client = OpenAI(api_key="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")
+client = OpenAI(api_key=openai_api_key)
+em_client = OpenAIEmbeddings(api_key=openai_api_key)
+pc = Pinecone(api_key=pinecone_api_key)
+index = pc.Index("295-vstore")
+
 app = FastAPI()
 client = AsyncOpenAI()
 app.add_middleware(
@@ -56,9 +77,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 
 # Print the data posted
 @app.post("/rating")
@@ -70,79 +93,81 @@ async def rating(request: Request):
     logger.bind(user="1").info(f"Rating: {rating} | Query: {query}")
     return {"message": "Logged"}
 
+
 @app.get("/topic")
 async def topic(query: str = None):
     print(query)
     text = query.replace("\n", " ")
-    encoded_query = await (
-                client.embeddings.create(input=[text], model="text-embedding-ada-002"))
-    encoded_query = encoded_query.data[0].embedding
+    # encoded_query = await (
+    # client.embeddings.create(input=[text], model="text-embedding-ada-002"))
+    # encoded_query = encoded_query.data[0].embedding
+    encoded_query = em_client.embed_documents([text])[0]
     context = "Question: " + query + "\n"
     context += "\n" + "#######Slide Context#####\n"
-    slide_results,content = get_slide_content(index, encoded_query) 
+    slide_results, content = get_slide_content(index, encoded_query)
     context += "\n #######Audio Context#####\n"
-    audio_results,content = get_audio_content(index, encoded_query)
-    context += content            
+    audio_results, content = get_audio_content(index, encoded_query)
+    context += content
     elements = []
     # Create json from list
     url = []
     # print(slide_results)
-    for m in slide_results['results'][0]['matches']:
-        url.append(m['metadata']['file'])
-    
+    for m in slide_results["results"][0]["matches"]:
+        url.append(m["metadata"]["file"])
 
     response = ""
     response += "\n\n #### Slide References \n\n" + display_slide_results(slide_results)
     response += "\n\n #### Audio References \n\n" + display_audio_results(audio_results)
-    
+
     result = {}
-    result['query'] = query
-    result['slides'] = url
-    result['markdown'] = response
+    result["query"] = query
+    result["slides"] = url
+    result["markdown"] = response
     query = query.replace("\n", "%20")
     logger.bind(user="1").info(f"Topic: {query}")
     return Response(content=result["markdown"], media_type="application/text")
 
+
 @app.get("/question")
 async def question(query: str = None):
-    index_id = "295-youtube-index"
-    pinecone.init(
-                api_key=pinecone_api_key,
-                environment="us-west1-gcp-free"
-                )
-    pinecone_index = pinecone.Index(index_id)
-    pinecone_index.describe_index_stats()
-    encoded_query = client.embeddings.create(input = [query], model="text-embedding-ada-002").data[0].embedding
-    response = pinecone_index.query(encoded_query, top_k=20,
-                            include_metadata=True)
+
+    pc = Pinecone(api_key=pinecone_api_key)
+    index = pc.Index("295-vstore")
+    index.describe_index_stats()
+    encoded_query = em_client.embed_documents([query])[0]
+    #    client.embeddings.create(input = [query], model="text-embedding-ada-002").data[0].embedding
+    response = index.query(vectors=[encoded_query], top_k=20, include_metadata=True)
+    # pinecone_index.query(encoded_query, top_k=20,
+    #                       include_metadata=True)
     context = ""
-    for m in response['matches']:
-        context += "\n" + m['metadata']['text']
-            
+    for m in response["matches"]:
+        context += "\n" + m["metadata"]["text"]
+
     url = ""
     st.subheader("References")
-    for m in response['matches'][0:2]:
-        url += m['metadata']['url']   
-    prompt=f"Please provide a concise answer in markdown format tothe following question: {query} based on content below{context} and the internet. If you are not sure, then say I donot know."
+    for m in response["matches"][0:2]:
+        url += m["metadata"]["url"]
+    prompt = f"Please provide a concise answer in markdown format tothe following question: {query} based on content below{context} and the internet. If you are not sure, then say I donot know."
     query_gpt = [
-        {"role": "system", "content": "You are a helpful teachingassistant for computer organization"},
+        {
+            "role": "system",
+            "content": "You are a helpful teachingassistant for computer organization",
+        },
         {"role": "user", "content": f"""{prompt}"""},
-        ]
-    answer_response = client.chat.completions.create(model='gpt-3.5-turbo',
-        messages= query_gpt,
-        temperature=0,
-        max_tokens=500)
+    ]
+    answer_response = client.chat.completions.create(
+        model="gpt-3.5-turbo", messages=query_gpt, temperature=0, max_tokens=500
+    )
     answer = answer_response.choices[0].message.content
-    
-    
+
     # Create json from list
     url = []
-    for m in response['matches']:
-        url.append(m['metadata']['url'])
-# logger.bind(user="1").info(f"Question: {query} |")
-    
+    for m in response["matches"]:
+        url.append(m["metadata"]["url"])
+    # logger.bind(user="1").info(f"Question: {query} |")
+
     response_json = {"answer": answer, "references": url}
-    
+
     return Response(content=json.dumps(response_json), media_type="application/json")
 
 
@@ -150,28 +175,30 @@ async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
     """
     OpenAI Response
     """
-    encoded_query = await (client.embeddings.create(
-                        input=[query], model="text-embedding-ada-002"))
+    encoded_query = await client.embeddings.create(
+        input=[query], model="text-embedding-ada-002"
+    )
     encoded_query = encoded_query.data[0].embedding
-                    
+
     context = "Question: " + query + "\n"
     context += "\n" + "#######Slide Context#####\n"
     slide_results, content = get_slide_content(index, encoded_query)
     context += content
     context += "\n #######Audio Context#####\n"
     audio_results, content = get_audio_content(index, encoded_query)
-    context += content     
-    
+    context += content
+
     # st.markdown(display_audio_results(audio_results))
-    
+
     response = await client.chat.completions.create(
         model="gpt-4-1106-preview",
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are an expert in RISC-V and Computer Architecture." "Try to answer the following questions based on the" "context below in markdown format. If you "
-                    " don't know the answer, just say 'I don't know'."
+                    "You are an expert in RISC-V, Computer architecture and Computer organization."
+                    "Try to answer the following question based on the"
+                    "context below in markdown format. If you do not know the answer, just say 'I don't know'."
                 ),
             },
             {
@@ -181,20 +208,27 @@ async def get_ai_response(query: str) -> AsyncGenerator[str, None]:
         ],
         stream=True,
     )
-    
+
     all_content = ""
     async for chunk in response:
         content = chunk.choices[0].delta.content
         if content:
             all_content += content
             yield all_content
-    
-    all_content += "\n\n #### Slide References \n\n" + display_slide_results(slide_results)
-    all_content += "\n\n #### Audio References \n\b" + display_audio_results(audio_results)
+
+    all_content += "\n\n #### Slide References \n\n" + display_slide_results(
+        slide_results
+    )
+    all_content += "\n\n #### Audio References \n\b" + display_audio_results(
+        audio_results
+    )
     week = extract_week(slide_results)
     query = query.replace("\n", "%20")
     logger.bind(user="1").info(f"Query: {query}")
-    all_content += "\n\n #### Relevant Week \n" + f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
+    all_content += (
+        "\n\n #### Relevant Week \n"
+        + f"[Relevant Week's videos](https://www.cs.sfu.ca/~ashriram/Courses/CS295/videos.html#week{week})`you can lookup using provided slide reference above`"
+    )
     yield all_content
     yield "EOS"
 
@@ -211,7 +245,6 @@ async def websocket_endpoint(websocket: WebSocket) -> NoReturn:
             await websocket.send_text(text)
 
 
-
 if __name__ == "__main__":
     repo = os.getenv("REPO")
     uvicorn.run(
@@ -222,5 +255,5 @@ if __name__ == "__main__":
         ssl_keyfile=f"{repo}/key.pem",  # Path to your key file
         ssl_certfile=f"{repo}/cert.pem",  # Path to your certificate file
         reload=True,
-        workers=8
+        workers=8,
     )

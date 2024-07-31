@@ -28,7 +28,6 @@ def init_logger():
         format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | {message} | {extra[user]}", rotation="10 MB", compression="gz")
 
 
-#client = OpenAI(api_key="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")
 client = OpenAI(api_key=openai_api_key)
 
 
