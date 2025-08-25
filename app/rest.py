@@ -43,15 +43,24 @@ from helpers import (
 from components.sidebar import sidebar
 
 # set to DEBUG for more verbose logging
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 load_dotenv()
 
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
 openai_api_key = os.getenv("OPENAI_API_KEY")
 # s3 = S3("classgpt")
 
+# Flag to prevent duplicate logger initialization
+_logger_initialized = False
 
 def init_logger():
+    global _logger_initialized
+    if _logger_initialized:
+        return
+    
+    # Remove default logger to prevent duplicates
+    logger.remove()
+    
     logger.add(
         "295API.log",
         level="INFO",
@@ -59,7 +68,11 @@ def init_logger():
         rotation="10 MB",
         compression="gz",
     )
+    _logger_initialized = True
 
+
+# Initialize logger
+init_logger()
 
 # client = OpenAI(api_key="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")
 client = OpenAI(api_key=openai_api_key)
@@ -90,7 +103,7 @@ async def rating(request: Request):
     data = await request.json()
     rating = data["rating"]
     query = data["query"].replace("\n", "%20")
-    logger.bind(user="1").info(f"Rating: {rating} | Query: {query}")
+    logger.bind(user="1").info(f" Query: {query} | Rating: {rating} ")
     return {"message": "Logged"}
 
 
@@ -255,5 +268,5 @@ if __name__ == "__main__":
         ssl_keyfile=f"{repo}/key.pem",  # Path to your key file
         ssl_certfile=f"{repo}/cert.pem",  # Path to your certificate file
         reload=True,
-        workers=8,
+        workers=1,  # Use single worker to prevent duplicate logs
     )
