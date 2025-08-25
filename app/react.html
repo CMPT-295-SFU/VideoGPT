@@ -136,251 +136,299 @@
         };
 
         return (
-          <Container maxWidth="lg">
-            <Box sx={{ my: 4 }}>
-              <Typography variant="h4" component="h1" gutterBottom>
-                Ask Prof Bot (developed by Arrvindh Shriraman)
+          <Container maxWidth="md" sx={{ py: 4 }}>
+            {/* Header Section */}
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Typography variant="h3" component="h1" sx={{ 
+                fontWeight: 700, 
+                background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 2
+              }}>
+                CMPT 295 AI Assistant
               </Typography>
-              <Accordion>
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
+                Your intelligent coding companion for computer systems and assembly
+              </Typography>
+            </Box>
+
+            {/* Collapsible Info Sections */}
+            <Box sx={{ mb: 4 }}>
+              <Accordion sx={{ mb: 1, borderRadius: 2, '&:before': { display: 'none' } }}>
                 <AccordionSummary
                   expandIcon={React.createElement(ExpandMoreIcon)}
                   sx={{
-                    backgroundColor: "#4a90e2",
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#e3f2fd' }
                   }}
                 >
-                  <Typography>About this AI Bot</Typography>
+                  <Typography variant="h6" fontWeight={600}>💡 About this AI Bot</Typography>
                 </AccordionSummary>
-                <AccordionDetails>
-                  <Typography component="div">
+                <AccordionDetails sx={{ p: 3 }}>
+                  <Typography component="div" variant="body1" lineHeight={1.6}>
                     <p>
-                      We&#39;re excited to launch a pilot program to explore how
-                      AI can enhance your learning experience. Think of it not
-                      as a substitute for asking questions in class or to your
-                      instructor, but as a handy tool to deepen your
-                      understanding of the concepts we cover at your own
-                      convenience (anytime of the day, any topic).{" "}
+                      We're excited to launch a pilot program to explore how AI can enhance your learning experience. 
+                      Think of it not as a substitute for asking questions in class or to your instructor, but as a 
+                      handy tool to deepen your understanding of the concepts we cover at your own convenience.
                     </p>
-                    <p>
-                      Below you will find a custom AI Bot that we have developed
-                      for 295. There are two options:
-                    </p>
-                    <ol>
-                      <li>
-                        Ask for a specific topic and app links to exact second
-                        in videos that we think are relevant from 295&#39;s
-                        database.
-                      </li>
-                      <li>
-                        You can use the Q/A feature. This will provide a
-                        detailed answer.{" "}
-                      </li>
-                    </ol>
-                    <p>
-                      Please note, while the app strives to provide accurate and
-                      relevant information, it relies on AI algorithms and may
-                      not be the most accurate. Please rate the answers and
-                      provide feedback so we can improve the app. Always
-                      cross-verify critical information from provided class
-                      material. We will be thankful if you can provide feedback
-                      using the rating feature.
-                    </p>
-                    <br />
+                    <Box component="div" sx={{ my: 2 }}>
+                      <Typography variant="subtitle1" fontWeight={600} gutterBottom>Two main features:</Typography>
+                      <Box component="ul" sx={{ pl: 2 }}>
+                        <li>Ask for a specific topic and get links to exact moments in relevant videos from our database</li>
+                        <li>Use the Q&A feature for detailed explanations and code examples</li>
+                      </Box>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Please note: While the app strives to provide accurate information, it relies on AI algorithms 
+                      and may not always be perfect. Please rate answers and always cross-verify critical information.
+                    </Typography>
                   </Typography>
                 </AccordionDetails>
               </Accordion>
-              <Accordion>
+
+              <Accordion sx={{ mb: 1, borderRadius: 2, '&:before': { display: 'none' } }}>
                 <AccordionSummary
                   expandIcon={React.createElement(ExpandMoreIcon)}
                   sx={{
-                    backgroundColor: "#4a90e2",
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#e3f2fd' }
                   }}
                 >
-                  <Typography>Examples</Typography>
+                  <Typography variant="h6" fontWeight={600}>📝 Example Questions</Typography>
                 </AccordionSummary>
-                <AccordionDetails>
-                  <Typography>
-                    How to generate the address for a nested array element
-                    array[i][j]?
-                    <br />
-                    What are the fields of R-type instruction in RISC-V?
-                    <br />
-                    What are s and n in gdb? <br />
+                <AccordionDetails sx={{ p: 3 }}>
+                  <Box component="div">
+                    <Typography variant="body1" component="div" sx={{ fontFamily: 'monospace', backgroundColor: '#f8f9fa', p: 2, borderRadius: 1, mb: 2 }}>
+                      • How to generate the address for a nested array element array[i][j]?<br/>
+                      • What are the fields of R-type instruction in RISC-V?<br/>
+                      • What are s and n in gdb?<br/>
+                      • Write assembly code to implement a for loop<br/>
+                      • Explain pointer arithmetic in C with examples
+                    </Typography>
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+
+              <Accordion sx={{ borderRadius: 2, '&:before': { display: 'none' } }}>
+                <AccordionSummary
+                  expandIcon={React.createElement(ExpandMoreIcon)}
+                  sx={{
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#e3f2fd' }
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={600}>📚 Usage Guidelines</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ p: 3 }}>
+                  <Typography component="div" variant="body1" lineHeight={1.6}>
+                    <Box component="ul" sx={{ pl: 2, '& li': { mb: 1 } }}>
+                      <li><strong>🧠 Understand Its Limits:</strong> The AI is smart but not perfect. Always double-check important answers.</li>
+                      <li><strong>💡 Get Examples:</strong> Ask for assembly instructions, pointer manipulation, or code examples.</li>
+                      <li><strong>🙋 Ask Questions:</strong> Get detailed explanations about RISC-V instructions or design features.</li>
+                      <li><strong>📚 Study Aid:</strong> Use for quizzes and labs, following course rules.</li>
+                      <li><strong>✅ Programming Assignments:</strong> Check when it's appropriate to use the bot.</li>
+                      <li><strong>❌ Exams:</strong> Not allowed during midterms and finals.</li>
+                    </Box>
                   </Typography>
                 </AccordionDetails>
               </Accordion>
-              <Accordion>
-                <AccordionSummary
-                  expandIcon={React.createElement(ExpandMoreIcon)}
+            </Box>
+
+            {/* Main Chat Interface */}
+            <Box sx={{ 
+              backgroundColor: 'white', 
+              borderRadius: 3, 
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              border: '1px solid #e0e0e0',
+              p: 3,
+              mb: 3
+            }}>
+              {/* Input Section */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom fontWeight={600}>
+                  Ask your question
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={6}
+                  maxRows={12}
+                  placeholder="Ask me anything about CMPT 295... 
+
+Examples:
+• Explain how function calls work in RISC-V
+• Write assembly code for a simple loop
+• How does memory allocation work?
+• Debug this C pointer code: int *ptr = &array[0];"
+                  variant="outlined"
+                  value={question}
+                  disabled={loading}
+                  onChange={(e) => setQuestion(e.target.value)}
                   sx={{
-                    backgroundColor: "#4a90e2",
-                  }}
-                >
-                  <Typography>How to use the app?</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography component="div">
-                    <ul>
-                      <li>
-                        🧠 <strong>Understand Its Limits</strong>: While the
-                        295Bot is super smart, it's not perfect. Sometimes, it
-                        might get things a bit mixed up (we like to call these
-                        "hallucinations"). So, while it can be a great help,
-                        always double-check its answers.{" "}
-                        <a href="%7B%7Bsite.baseurl%7D%7D/quiz.html">
-                          Here's an example
-                        </a>{" "}
-                        of what to watch out for.
-                      </li>
-                      <li>
-                        💡 <strong>Generating Examples</strong>: Struggling with
-                        assembly instructions or pointer manipulation? the
-                        295Bot can whip up examples to make these concepts
-                        clearer.
-                      </li>
-                      <li>
-                        🙋 <strong>Answering Questions</strong>: Got a question
-                        about specific RISC-V instructions or design features?
-                        Ask away! the 295Bot can offer detailed explanations
-                        that might just be the lightbulb moment you need.
-                      </li>
-                      <li>
-                        📚 <strong>Use in Quizzes and Labs</strong>: Feel free
-                        to use the 295Bot as a study aid for quizzes and labs,
-                        but remember to stick to the{" "}
-                        <a href="%7B%7Bsite.baseurl%7D%7D/quiz.html">
-                          quiz rules
-                        </a>{" "}
-                        and{" "}
-                        <a href="%7B%7Bsite.baseurl%7D%7D/lab.html">
-                          lab rules
-                        </a>
-                        .
-                      </li>
-                      <li>
-                        ✅ <strong>Programming Assignments</strong>: We'll let
-                        you know when it's cool to use the 295Bot for
-                        programming assignments.
-                      </li>
-                      <li>
-                        ❌ <strong>Midterms and Finals</strong>: A heads-up –
-                        the 295Bot is off-limits during these exams.
-                      </li>
-                    </ul>
-                  </Typography>
-                </AccordionDetails>
-              </Accordion> <br />
-              <TextField
-                id="outlined-basic"
-                label="Ask me Anything in CMPT 295"
-                variant="outlined"
-                multiline
-                rows={10}
-                style={{ width: "100%" }}
-                value={question}
-                disabled={loading}
-                onChange={(e) => {
-                  setQuestion(e.target.value);
-                }}
-                onKeyUp={(e) => {
-                  setLoading(false);
-                }}
-              />
-              <Button
-                variant="contained"
-                style={{
-                  marginTop: "10px",
-                  marginRight: "10px",
-                  backgroundColor: "#4a90e2",
-                  color: "white",
-                  padding: "10px 20px",
-                  textTransform: "none",
-                  // borderRadius: "20px",
-                  boxShadow: "none",
-                  fontWeight: "bold",
-                  transition: "transform 0.1s ease-in-out", // Smooth transition for press animation
-                }}
-                onMouseDown={(e) => {
-                  e.target.style.transform = "scale(0.80)"; // Slightly scale down the button when clicked
-                }}
-                onMouseUp={(e) => {
-                  e.target.style.transform = "scale(1)"; // Return to normal scale
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = "scale(1)"; // Return to normal scale when mouse leaves
-                }}
-                disabled={loading}
-                onClick={sendTopic}
-              >
-                Search Topic
-              </Button>
-              <div style={{ display: "inline-block", marginRight: "10px" }}>
-                <Button
-                  variant="contained"
-                  style={{
-                    marginTop: "10px",
-                    margingBottom: "10px",
-                    marginRight: "10px",
-                    backgroundColor: loading ? "red" : "#4a90e2",
-                    color: "white",
-                    padding: "10px 20px",
-                    textTransform: "none",
-                    //  borderRadius: "20px",
-                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                    fontWeight: "bold",
-                    transition:
-                      "transform 0.1s ease-in-out, background-color 0.3s ease",
-                  }}
-                  onMouseDown={(e) => {
-                    e.target.style.transform = "scale(0.95)";
-                    e.target.style.backgroundColor = loading ? "red" : "#357ABD";
-                  }}
-                  onMouseUp={(e) => {
-                    e.target.style.transform = "scale(1)";
-                    e.target.style.backgroundColor = loading ? "red" : "#4a90e2";
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!e.target.style.transform.includes("0.95")) {
-                      e.target.style.backgroundColor = loading ? "red" : "#357ABD";
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      fontSize: '16px',
+                      lineHeight: 1.6,
+                      fontFamily: '"JetBrains Mono", "Consolas", "Monaco", monospace',
+                      '&:hover fieldset': {
+                        borderColor: '#1976d2',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1976d2',
+                        borderWidth: 2,
+                      }
+                    },
+                    '& .MuiInputBase-input': {
+                      padding: '16px',
                     }
                   }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = "scale(1)";
-                    e.target.style.backgroundColor = loading ? "red" : "#4a90e2";
+                />
+              </Box>
+
+              {/* Action Buttons */}
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={loading || !question.trim()}
+                  onClick={sendTopic}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1.5,
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                    boxShadow: '0 3px 10px rgba(33, 150, 243, 0.3)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 6px 20px rgba(33, 150, 243, 0.4)',
+                    },
+                    transition: 'all 0.2s ease-in-out'
                   }}
-                  //   disabled={loading}
-                  onClick={loading ? stopStream : askMyProf}
                 >
-                  {" "}
-                  {loading ? "Stop" : "Ask My Prof"}
+                  🔍 Search Topics
                 </Button>
-              </div>{" "}
-              <br></br>
-              Please rate the answer:
-              <Rating
-                name="simple-controlled"
-                value={rating}
-                onChange={handleRatingChange}
-              />
-              <br></br>
+                
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={!question.trim()}
+                  onClick={loading ? stopStream : askMyProf}
+                  sx={{
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1.5,
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    background: loading 
+                      ? 'linear-gradient(45deg, #f44336 30%, #ff5722 90%)'
+                      : 'linear-gradient(45deg, #4caf50 30%, #66bb6a 90%)',
+                    boxShadow: loading 
+                      ? '0 3px 10px rgba(244, 67, 54, 0.3)'
+                      : '0 3px 10px rgba(76, 175, 80, 0.3)',
+                    '&:hover': {
+                      background: loading
+                        ? 'linear-gradient(45deg, #d32f2f 30%, #f44336 90%)'
+                        : 'linear-gradient(45deg, #388e3c 30%, #4caf50 90%)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: loading
+                        ? '0 6px 20px rgba(244, 67, 54, 0.4)'
+                        : '0 6px 20px rgba(76, 175, 80, 0.4)',
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                >
+                  {loading ? "⏹️ Stop" : "🤖 Ask 295 AI"}
+                </Button>
+              </Box>
             </Box>
-            {!response && loading && (
-              <>
-                <Skeleton />
-                <Skeleton animation="wave" />
-                <Skeleton animation={false} />
-              </>
-            )}
-            {response && (
-              <div>
-                <Typography dangerouslySetInnerHTML={{ __html: response }} />
-                {rating === null && (
-                  <div>
-                    <Typography variant="h6">Rate this answer:</Typography>
-                    <Rating value={0} onChange={handleRatingChange} />
-                  </div>
+
+            {/* Response Section */}
+            {(response || loading) && (
+              <Box sx={{ 
+                backgroundColor: 'white', 
+                borderRadius: 3, 
+                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                border: '1px solid #e0e0e0',
+                p: 3,
+                mb: 3
+              }}>
+                <Typography variant="h6" gutterBottom fontWeight={600}>
+                  Response
+                </Typography>
+                
+                {loading && !response && (
+                  <Box sx={{ py: 3 }}>
+                    <Skeleton variant="text" height={30} sx={{ mb: 1 }} />
+                    <Skeleton variant="text" height={30} animation="wave" sx={{ mb: 1 }} />
+                    <Skeleton variant="text" height={30} sx={{ mb: 1 }} />
+                    <Skeleton variant="rectangular" height={100} sx={{ borderRadius: 1 }} />
+                  </Box>
                 )}
-              </div>
+                
+                {response && (
+                  <Box sx={{
+                    '& pre': {
+                      backgroundColor: '#f8f9fa',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      overflow: 'auto',
+                      fontSize: '14px',
+                      fontFamily: '"JetBrains Mono", "Consolas", "Monaco", monospace',
+                    },
+                    '& code': {
+                      backgroundColor: '#f1f3f4',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      fontFamily: '"JetBrains Mono", "Consolas", "Monaco", monospace',
+                    },
+                    '& blockquote': {
+                      borderLeft: '4px solid #1976d2',
+                      margin: '16px 0',
+                      padding: '8px 16px',
+                      backgroundColor: '#f8f9fa',
+                      fontStyle: 'italic',
+                    }
+                  }}>
+                    <Typography 
+                      component="div" 
+                      dangerouslySetInnerHTML={{ __html: response }}
+                      sx={{ lineHeight: 1.6 }}
+                    />
+                  </Box>
+                )}
+                
+                {/* Rating Section */}
+                {response && (
+                  <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid #e0e0e0' }}>
+                    <Typography variant="subtitle1" gutterBottom fontWeight={600}>
+                      Rate this response:
+                    </Typography>
+                    <Rating
+                      value={rating}
+                      onChange={handleRatingChange}
+                      size="large"
+                      sx={{ '& .MuiRating-iconFilled': { color: '#ff6d00' } }}
+                    />
+                  </Box>
+                )}
+              </Box>
             )}
+
+            {/* Footer */}
+            <Box sx={{ textAlign: 'center', mt: 4, py: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Developed by Arrvindh Shriraman • CMPT 295 • SFU
+              </Typography>
+            </Box>
           </Container>
         );
       }
