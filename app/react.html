@@ -5,12 +5,12 @@
     <title>AI Assistant 🤓</title>
     <meta name="viewport" content="initial-scale=1, width=device-width" />
     <script
-      src="https://unpkg.com/react@latest/umd/react.development.js"
+      src="https://unpkg.com/react@18.2.0/umd/react.development.js"
       crossorigin="anonymous"
     ></script>
-    <script src="https://unpkg.com/react-dom@latest/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
     <script
-      src="https://unpkg.com/@mui/material@latest/umd/material-ui.development.js"
+      src="https://unpkg.com/@mui/material@5.14.20/umd/material-ui.development.js"
       crossorigin="anonymous"
     ></script>
     <script
@@ -34,32 +34,28 @@
     `TO USE THIS APP YOU HAVE TO BE CONNECTED TO VPN or SFU WIFI` `IF FRAME
     BELOW IS BLANK, THAT MEANS YOU ARE NOT CONNECTED` `BEFORE YOU CAN USE THE
     APP YOU HAVE TO ACCEPT PERMISSIONS BELOW ONCE` [Click
-    Link](https://127.0.0.1:42000/) **Advanced>Proceed to safe...**
+    Link](https://142.58.23.176:42000/) **Advanced>Proceed to safe...**
 
     <div id="root"></div>
     <script type="text/babel">
       const {
-        colors,
-        CssBaseline,
         ThemeProvider,
+        CssBaseline,
         Typography,
+        Button,
         TextField,
         Container,
-        createTheme,
         Box,
-        Button,
-        Rating,
-        Skeleton,
         Accordion,
         AccordionSummary,
         AccordionDetails,
+        Rating,
+        Skeleton,
       } = MaterialUI;
 
-      const theme = createTheme({
-        palette: {
-          mode: "light",
-        },
-      });
+      // Add ExpandMore icon component for accordions
+      const ExpandMoreIcon = () => React.createElement('span', {style: {fontSize: '1.2em'}}, '▼');
+
 
       const WS = new WebSocket("wss://127.0.0.1:42000/stream");
 
@@ -147,6 +143,7 @@
               </Typography>
               <Accordion>
                 <AccordionSummary
+                  expandIcon={React.createElement(ExpandMoreIcon)}
                   sx={{
                     backgroundColor: "#4a90e2",
                   }}
@@ -154,7 +151,7 @@
                   <Typography>About this AI Bot</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography>
+                  <Typography component="div">
                     <p>
                       We&#39;re excited to launch a pilot program to explore how
                       AI can enhance your learning experience. Think of it not
@@ -193,6 +190,7 @@
               </Accordion>
               <Accordion>
                 <AccordionSummary
+                  expandIcon={React.createElement(ExpandMoreIcon)}
                   sx={{
                     backgroundColor: "#4a90e2",
                   }}
@@ -212,6 +210,7 @@
               </Accordion>
               <Accordion>
                 <AccordionSummary
+                  expandIcon={React.createElement(ExpandMoreIcon)}
                   sx={{
                     backgroundColor: "#4a90e2",
                   }}
@@ -219,7 +218,7 @@
                   <Typography>How to use the app?</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography>
+                  <Typography component="div">
                     <ul>
                       <li>
                         🧠 <strong>Understand Its Limits</strong>: While the
@@ -332,19 +331,21 @@
                       "transform 0.1s ease-in-out, background-color 0.3s ease",
                   }}
                   onMouseDown={(e) => {
-                    e.target.style.transform = "scale(0.5)";
-                    e.target.style.backgroundColor = "#357ABD"; // Change background color on mouse down
+                    e.target.style.transform = "scale(0.95)";
+                    e.target.style.backgroundColor = loading ? "red" : "#357ABD";
                   }}
                   onMouseUp={(e) => {
                     e.target.style.transform = "scale(1)";
-                    e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse up
+                    e.target.style.backgroundColor = loading ? "red" : "#4a90e2";
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#357ABD"; // Change background color on mouse enter
+                    if (!e.target.style.transform.includes("0.95")) {
+                      e.target.style.backgroundColor = loading ? "red" : "#357ABD";
+                    }
                   }}
                   onMouseLeave={(e) => {
                     e.target.style.transform = "scale(1)";
-                    e.target.style.backgroundColor = "#4a90e2"; // Restore original background color on mouse leave
+                    e.target.style.backgroundColor = loading ? "red" : "#4a90e2";
                   }}
                   //   disabled={loading}
                   onClick={loading ? stopStream : askMyProf}
@@ -375,7 +376,7 @@
                 {rating === null && (
                   <div>
                     <Typography variant="h6">Rate this answer:</Typography>
-                    <Rating initialRating={0} onRate={handleRating} />
+                    <Rating value={0} onChange={handleRatingChange} />
                   </div>
                 )}
               </div>
@@ -384,12 +385,7 @@
         );
       }
 
-      ReactDOM.createRoot(document.getElementById("root")).render(
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <App />
-        </ThemeProvider>
-      );
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
     </script>
   </body>
 </html>
