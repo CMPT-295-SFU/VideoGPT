@@ -52,7 +52,7 @@
       const ExpandMoreIcon = () => React.createElement('span', {style: {fontSize: '1.2em'}}, '▼');
 
 
-      const WS = new WebSocket("wss://127.0.0.1:42000/stream");
+      const WS = new WebSocket("wss://142.58.22.192:42000/stream");
 
       function App() {
         const [response, setResponse] = React.useState("");
@@ -84,7 +84,7 @@
 
         const askMyProf = () => {
           setLoading(true);
-          const WS = new WebSocket("wss://127.0.0.1:42000/stream");
+          const WS = new WebSocket("wss://142.58.22.192:42000/stream");
           setWs(WS);
 
           WS.onmessage = (event) => {
@@ -114,7 +114,7 @@
           try {
             setConnectionError(false);
             const response = await fetch(
-              `https://127.0.0.1:42000/topic?query=${question}`
+              `https://142.58.22.192:42000/topic?query=${question}`
             );
             if (!response.ok) throw new Error('Connection failed');
             const data = await response.text();
@@ -136,7 +136,7 @@
             }),
           };
           const response = fetch(
-            "https://127.0.0.1:42000/rating",
+            "https://142.58.22.192:42000/rating",
             requestOptions
           );
         };
